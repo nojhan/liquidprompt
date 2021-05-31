@@ -617,18 +617,21 @@ lp_activate() {
         (( LP_ENABLE_RUNTIME || LP_ENABLE_RUNTIME_BELL )) && preexec_functions+=(__lp_runtime_before)
         (( LP_ENABLE_TITLE_COMMAND )) && preexec_functions+=(__lp_print_title_command)
 
+        if (( LP_ENABLE_RUNTIME || LP_ENABLE_RUNTIME_BELL || LP_ENABLE_TITLE_COMMAND )); then
+            _LP_AT_PROMPT=0
+            # __lp_before_command gets called just before bash executes a command,
+            # including $PROMPT_COMMAND
+            # Pass $_ to this call, because it sets $_ to what it already was
+            # shellcheck disable=SC2016
+            precmd_functions+=('__lp_before_command "$_"')
+        fi
     else
         if (( LP_ENABLE_RUNTIME || LP_ENABLE_RUNTIME_BELL || LP_ENABLE_TITLE_COMMAND )); then
             _LP_AT_PROMPT=0
             # __lp_before_command gets called just before bash executes a command,
             # including $PROMPT_COMMAND
             # Pass $_ to this call, because it sets $_ to what it already was
-            if ! __lp_use_bash_preexec; then
-                trap '__lp_before_command "$_"' DEBUG
-            else
-                # shellcheck disable=SC2016
-                precmd_functions+=('__lp_before_command "$_"')
-            fi
+            trap '__lp_before_command "$_"' DEBUG
         fi
     fi
 
