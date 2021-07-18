@@ -47,7 +47,7 @@ following lines in your ``.zshrc`` after activating Zinit::
 Dependencies
 ============
 
-Liquidprompt uses commands that should be available on a large variety of Unix
+Liquid Prompt uses commands that should be available on a large variety of Unix
 systems:
 
    * ``awk``
@@ -85,10 +85,10 @@ Adjust the path if you installed to a different location that the suggested
 Shell Installation
 ==================
 
-To use Liquidprompt every time you start a shell, add the following lines to
+To use Liquid Prompt every time you start a shell, add the following lines to
 your ``.bashrc`` (if you use Bash) or ``.zshrc`` (if you use zsh)::
 
-   # Only load Liquidprompt in interactive shells, not from a script or from scp
+   # Only load Liquid Prompt in interactive shells, not from a script or from scp
    [[ $- = *i* ]] && source ~/liquidprompt/liquidprompt
 
 Adjust the path if you installed to a different location that the suggested
@@ -98,7 +98,7 @@ Adjust the path if you installed to a different location that the suggested
    Check in your ``.bashrc`` that the :envvar:`PROMPT_COMMAND` variable is not
    set, or else the prompt will not be available. If you must set it or use a
    add-on that sets it, make sure to set :envvar:`PROMPT_COMMAND` **before** you
-   source Liquidprompt to avoid history and timing issues. Do not export
+   source Liquid Prompt to avoid history and timing issues. Do not export
    :envvar:`PROMPT_COMMAND`.
 
 Next up are the :doc:`config`.

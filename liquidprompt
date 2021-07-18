@@ -1640,7 +1640,7 @@ _lp_vcs_details_color() {
     lp_vcs_details_color+="$NO_COL"
 }
 
-# Check if the detected VCS is enabled in Liquidprompt and the current
+# Check if the detected VCS is enabled in Liquid Prompt and the current
 # directory is a valid repository of that type.
 _lp_vcs_active() {
     "_lp_${lp_vcs_type}_active" 2>/dev/null
@@ -1719,7 +1719,7 @@ _lp_vcs_staged_lines() {
 
 # GIT #
 
-# Check if Git is enabled in Liquidprompt and the current directory is a valid
+# Check if Git is enabled in Liquid Prompt and the current directory is a valid
 # Git repository.
 _lp_git_active() {
     (( LP_ENABLE_GIT )) || return 2
@@ -1936,7 +1936,7 @@ _lp_git_staged_lines() {
 # MERCURIAL #
 # Note that Mercurial has no staging area
 
-# Check if Mercurial is enabled in Liquidprompt and the current directory is a
+# Check if Mercurial is enabled in Liquid Prompt and the current directory is a
 # valid Mercurial repository.
 _lp_hg_active() {
     (( LP_ENABLE_HG )) || return 2
@@ -2050,7 +2050,7 @@ _lp_hg_uncommitted_lines() {
 # Note that Subversion has no tags, stashes, or staging area. It also has no
 # concept of a remote, since it is not distributed and always must be in sync.
 
-# Check if Subversion is enabled in Liquidprompt and the current directory is a
+# Check if Subversion is enabled in Liquid Prompt and the current directory is a
 # valid Subversion repository.
 _lp_svn_active() {
     (( LP_ENABLE_SVN )) || return 2
@@ -2120,7 +2120,7 @@ _lp_svn_uncommitted_lines() {
 # FOSSIL #
 # Note that Fossil has no staging area, bookmarks, or unique tags.
 
-# Check if Fossil is enabled in Liquidprompt and the current directory is a
+# Check if Fossil is enabled in Liquid Prompt and the current directory is a
 # valid Fossil repository.
 _lp_fossil_active() {
     (( LP_ENABLE_FOSSIL )) || return 2
@@ -2216,7 +2216,7 @@ _lp_fossil_uncommitted_lines() {
 # Bazaar #
 # Note that Bazaar has no staging area, bookmarks, remote tracking branches, or extra statuses.
 
-# Check if Bazaar is enabled in Liquidprompt and the current directory is a
+# Check if Bazaar is enabled in Liquid Prompt and the current directory is a
 # valid Bazaar repository. This check should be done before running any other
 # _lp_bzr_* data functions.
 _lp_bzr_active() {
@@ -3120,7 +3120,7 @@ lp_theme() {
 
     if [[ -z $theme ]]; then
         printf '%s\n%s\n' \
-            'Must pass in the name of a theme. If you meant the default Liquidprompt theme, try "default".' \
+            'Must pass in the name of a theme. If you meant the default Liquid Prompt theme, try "default".' \
             'Run "lp_theme --list" to see all loaded and available themes.' 2>&1
         return 1
     fi
