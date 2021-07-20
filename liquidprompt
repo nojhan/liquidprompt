@@ -24,6 +24,12 @@
 # Do not exit if '--no-activate' flag was passed, as it overrides this check
 [ "x${-##*i}" = "x$-" ] || [ -z "${TERM-}" ] || [ "x${TERM-}" = xdumb ] && [ "x${1-}" != "x--no-activate" ] && return
 
+__lp_use_bash_preexec() {
+    # If https://github.com/rcaloras/bash-preexec is present, we can (and should, because it interferes with
+    # PROMPT_COMMAND and DEBUG) use the zsh-hook like behavior it provides.
+    [[ "${__bp_imported:-}" == "defined" ]]
+}
+
 if test -n "${BASH_VERSION-}"; then
     # Check for recent enough version of bash.
     if (( ${BASH_VERSINFO[0]:-0} < 3 || ( ${BASH_VERSINFO[0]:-0} == 3 && ${BASH_VERSINFO[1]:-0} < 2 ) )); then
@@ -402,6 +408,25 @@ lp_activate() {
         # the feature in .liquidpromptrc)
         (( ${LP_ENABLE_RUNTIME-0} || ${LP_ENABLE_RUNTIME_BELL-0} || ${LP_ENABLE_TITLE_COMMAND-0} )) && trap - DEBUG
 
+        # Disable previous hooks as options that set them
+        # may have changed
+        # (This is "remove the specified value(s) from the array", which bash does not make easy.)
+        new_precmd_functions=()
+        for value in "${precmd_functions[@]}"; do
+            [[ "$value" != "__lp_set_prompt" ]] && new_precmd_functions+=("$value")
+        done
+        precmd_functions=("${new_precmd_functions[@]}")
+        unset new_precmd_functions
+
+        # Now repeat for preexec (not precmd) functions
+        new_preexec_functions=()
+        for value in "${preexec_functions[@]}"; do
+            [[ "$value" != "__lp_runtime_before" ]] &&
+            [[ "$value" != "__lp_print_title_command" ]] && new_preexec_functions+=("$value")
+        done
+        preexec_functions=("${new_preexec_functions[@]}")
+        unset new_preexec_functions
+
         complete -F __lp_theme_bash_complete lp_theme
     else # zsh
         # For ZSH, autoload required functions
@@ -589,6 +614,9 @@ lp_activate() {
     if (( _LP_SHELL_zsh )); then
         (( LP_ENABLE_RUNTIME || LP_ENABLE_RUNTIME_BELL )) && add-zsh-hook preexec __lp_runtime_before
         (( LP_ENABLE_TITLE_COMMAND )) && add-zsh-hook preexec __lp_print_title_command
+    elif __lp_use_bash_preexec; then
+        (( LP_ENABLE_RUNTIME || LP_ENABLE_RUNTIME_BELL )) && preexec_functions+=(__lp_runtime_before)
+        (( LP_ENABLE_TITLE_COMMAND )) && preexec_functions+=(__lp_print_title_command)
     else
         if (( LP_ENABLE_RUNTIME || LP_ENABLE_RUNTIME_BELL || LP_ENABLE_TITLE_COMMAND )); then
             _LP_AT_PROMPT=0
@@ -3060,8 +3088,13 @@ prompt_on() {
 
         # Disable parameter/command expansion from PS1
         shopt -u promptvars
-        PROMPT_COMMAND=__lp_set_prompt
-        (( LP_DEBUG_TIME )) && PROMPT_COMMAND="time $PROMPT_COMMAND" || true
+        if ! __lp_use_bash_preexec; then
+            PROMPT_COMMAND=__lp_set_prompt
+            (( LP_DEBUG_TIME )) && PROMPT_COMMAND="time $PROMPT_COMMAND" || true
+        else
+            precmd_functions+=(__lp_set_prompt)
+            (( LP_DEBUG_TIME )) && precmd_functions+=("time __lp_set_prompt") || true
+        fi
     else # zsh
         [[ -n "${_LP_ZSH_HOOK-}" ]] && add-zsh-hook -d precmd "$_LP_ZSH_HOOK"
         # Set options that affect PS1 evaluation
@@ -3086,7 +3119,26 @@ prompt_off() {
     PS1=$LP_OLD_PS1
     if (( _LP_SHELL_bash )); then
         eval "$_LP_OLD_SHOPT"
-        PROMPT_COMMAND="$LP_OLD_PROMPT_COMMAND"
+        if ! __lp_use_bash_preexec; then
+            PROMPT_COMMAND="$LP_OLD_PROMPT_COMMAND"
+        else
+            # remove all the __lp_ hooks we installed
+            # (This is "remove the specified value(s) from the array", which bash does not make easy.)
+            new_precmd_functions=()
+            for value in "${precmd_functions[@]}"; do
+                [[ "$value" =~ __lp_ ]] && new_precmd_functions+=("$value")
+            done
+            precmd_functions=("${new_precmd_functions[@]}")
+            unset new_precmd_functions
+
+            # Now repeat for preexec (not precmd) functions
+            new_preexec_functions=()
+            for value in "${preexec_functions[@]}"; do
+                [[ "$value" =~ __lp_ ]] && new_preexec_functions+=("$value")
+            done
+            preexec_functions=("${new_preexec_functions[@]}")
+            unset new_preexec_functions
+        fi
     else # zsh
         add-zsh-hook -d precmd "$_LP_ZSH_HOOK"
         setopt "${_LP_OLD_SETOPT[@]}"
@@ -3099,7 +3151,11 @@ prompt_OFF() {
     PS1="$_LP_MARK_SYMBOL "
     if (( _LP_SHELL_bash )); then
         shopt -u promptvars
-        PROMPT_COMMAND="$LP_OLD_PROMPT_COMMAND"
+        if ! __lp_use_bash_preexec; then
+            PROMPT_COMMAND="$LP_OLD_PROMPT_COMMAND"
+        else
+            precmd_functions+=("LP_OLD_PROMPT_COMMAND")
+        fi
     else # zsh
         add-zsh-hook -d precmd "$_LP_ZSH_HOOK"
         setopt promptpercent nopromptbang nopromptsubst
